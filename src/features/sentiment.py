@@ -41,6 +41,7 @@ from pathlib import Path
 from textwrap import dedent
 from typing import Iterable
 
+import numpy as np
 import pandas as pd
 from dotenv import load_dotenv
 
@@ -313,6 +314,85 @@ def aggregate_daily(
           .reset_index(drop=True)
     )
     return daily
+
+
+SENTIMENT_FEATURE_COLUMNS: list[str] = [
+    "sent_ma_3",
+    "sent_ma_7",
+    "sent_change_1",
+    "news_count_7",
+    "log_news_count_7",
+]
+
+
+def add_rolling_sentiment_features(
+    daily: pd.DataFrame,
+    *,
+    business_days_only: bool = False,
+) -> pd.DataFrame:
+    """Add rolling sentiment features per ticker on a contiguous calendar.
+
+    The output of :func:`aggregate_daily` is sparse — a ticker only has
+    rows on days where it actually appeared in the news. Computing
+    ``.rolling(3).mean()`` directly on that sparse frame would average
+    across uneven time gaps and silently misrepresent the signal. This
+    function reindexes each ticker to a contiguous date range first
+    (calendar days by default; pass ``business_days_only=True`` to
+    align to a Mon–Fri index instead) and *then* computes:
+
+    - ``sent_ma_3``      — 3-day moving average of ``mean_score``
+    - ``sent_ma_7``      — 7-day moving average of ``mean_score``
+    - ``sent_change_1``  — day-over-day diff of ``mean_score``
+    - ``news_count_7``   — rolling 7-day sum of ``n_articles``
+    - ``log_news_count_7`` — ``log1p(news_count_7)``
+
+    On no-news days, ``mean_score`` is left as NaN (we genuinely don't
+    know) and ``n_articles`` is filled with 0. Rolling means use
+    ``min_periods=1`` so a window with one valid score still produces
+    a value; downstream code can decide how to handle the NaN tail.
+    """
+    expected = {"date", "ticker", "mean_score", "n_articles"}
+    missing = expected - set(daily.columns)
+    if missing:
+        raise ValueError(f"daily frame missing columns: {sorted(missing)}")
+
+    if daily.empty:
+        out = daily.copy()
+        for col in SENTIMENT_FEATURE_COLUMNS:
+            out[col] = pd.Series(dtype="float64")
+        return out
+
+    df = daily.copy()
+    df["date"] = pd.to_datetime(df["date"])
+
+    pieces: list[pd.DataFrame] = []
+    freq = "B" if business_days_only else "D"
+    for ticker, g in df.groupby("ticker", sort=False):
+        g = g.sort_values("date")
+        full_index = pd.date_range(g["date"].min(), g["date"].max(), freq=freq)
+        dense = (
+            g.set_index("date")
+             .reindex(full_index)
+             .rename_axis("date")
+             .reset_index()
+        )
+        dense["ticker"] = ticker
+        # n_articles: missing day means zero coverage.
+        dense["n_articles"] = dense["n_articles"].fillna(0).astype(int)
+        # mean_score / mean_conf stay NaN — they will be skipped by .mean().
+        dense["sent_ma_3"] = dense["mean_score"].rolling(window=3, min_periods=1).mean()
+        dense["sent_ma_7"] = dense["mean_score"].rolling(window=7, min_periods=1).mean()
+        dense["sent_change_1"] = dense["mean_score"].diff()
+        dense["news_count_7"] = dense["n_articles"].rolling(window=7, min_periods=1).sum()
+        dense["log_news_count_7"] = np.log1p(dense["news_count_7"])
+        pieces.append(dense)
+
+    enriched = pd.concat(pieces, ignore_index=True)
+    enriched = enriched[
+        ["date", "ticker", "mean_score", "mean_conf", "n_articles", *SENTIMENT_FEATURE_COLUMNS]
+    ]
+    enriched["date"] = enriched["date"].dt.date
+    return enriched.sort_values(["ticker", "date"]).reset_index(drop=True)
 
 
 # ---------------------------------------------------------------------------
