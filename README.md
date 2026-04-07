@@ -23,7 +23,7 @@
 
 | Layer | Tools |
 |---|---|
-| Language | Python 3.10 |
+| Language | Python 3.12+ |
 | Data | yfinance, FinMind, pandas, NumPy |
 | NLP | OpenAI API / FinBERT, LangChain |
 | ML | scikit-learn, XGBoost, PyTorch |
