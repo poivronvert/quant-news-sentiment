@@ -16,10 +16,10 @@
 - [x] 撰寫 PROGRESS.md
 
 ### Phase 1 — Data Exploration (notebooks/01_data_exploration.ipynb)
-- [ ] 使用 yfinance 抓取台灣 50 成分股 OHLCV（2020/01/01–2024/12/31）
-- [ ] 檢視缺失值、停牌、除權息等資料品質問題
-- [ ] 畫出價格 / 報酬率 / 波動率基本統計
-- [ ] 將原始價格資料存入 `data/raw/prices/`
+- [x] 使用 yfinance 抓取台灣 50 成分股 OHLCV（2020/01/01–2024/12/31）— 目前先用 15 檔種子清單
+- [x] 檢視缺失值、停牌、除權息等資料品質問題
+- [x] 畫出價格 / 報酬率 / 波動率基本統計
+- [x] 將原始價格資料存入 `data/raw/prices/tw50_seed_2020_2024.parquet`（18,210 rows）
 
 ### Phase 2 — Data Collection Modules
 - [ ] `src/data_collection/price_loader.py`：把 notebook 中驗證過的抓取邏輯模組化
@@ -70,7 +70,7 @@
 |---|---|---|
 | 0 | `chore: bootstrap project with uv and directory scaffold` | 初始化 |
 | 0 | `docs: add PROGRESS.md execution plan` | 進度計畫 |
-| 1 | `feat(data): add price exploration notebook for TW50` | 資料探索 |
+| 1 | `feat(data): add TW50 price exploration notebook` | 資料探索 (5aa6dfe) |
 
 ---
 
