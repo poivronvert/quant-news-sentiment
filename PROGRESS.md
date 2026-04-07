@@ -28,11 +28,13 @@
 - [ ] *Deferred to Phase 7：* 使用歷史 TW50 成分股清單取代 seed list
 - [ ] *Deferred：* 擴充其他來源（聯合報、經濟日報等）
 
-### Phase 3 — Sentiment Analysis (notebooks/02_sentiment_analysis.ipynb)
-- [ ] FinBERT zero-shot baseline
-- [ ] OpenAI GPT-4o-mini prompt-based scoring（需 `OPENAI_API_KEY`）
-- [ ] 每日情緒聚合（加權平均 + 時間衰減）
-- [ ] 輸出至 `data/sentiment/`
+### Phase 3 — Sentiment Analysis
+- [x] **3a** notebook prototype：Gemma 5-class JSON prompt → score in [-1,1]
+- [x] **3b** cross-check baseline：`tabularisai/multilingual-sentiment-analysis`（CPU，非 finance-tuned，當對照組）
+- [x] **3c** 抽出 `src/features/sentiment.py`（Scorer ABC + GemmaScorer + HFScorer + CLI + idempotent resume + daily aggregation）
+- [x] 改用本機 vLLM 而非 OpenAI cloud（cost-driven decision，存進 memory）
+- [x] 輸出至 `data/sentiment/`（CLI 已驗證）
+- [ ] *Deferred to Phase 7：* 情緒時間衰減權重、bias 量化（已有 r=-0.273 / sign agreement 20% 證據）
 
 ### Phase 4 — Feature Engineering
 - [ ] `src/features/technical.py`：MA / RSI / MACD / BBands / HV
@@ -75,6 +77,10 @@
 | 1 | `feat(data): add TW50 price exploration notebook` | 資料探索 (5aa6dfe) |
 | 2a | `feat(data): extract price_loader module from notebook` | 抓價模組 + CLI + tests |
 | 2b | `feat(data): add cnyes RSS news scraper` | 138 篇 / 84 帶 ticker |
+| — | `chore: configure self-hosted vLLM endpoint` | 改用本機 Gemma，省 OpenAI API 錢 |
+| 3a | `feat(sentiment): prototype Gemma sentiment scoring notebook` | 5-class JSON prompt |
+| 3b | `feat(sentiment): add multilingual baseline cross-check` | bias 對照組，r=-0.273 |
+| 3c | `feat(sentiment): extract sentiment module with dual backend` | Scorer ABC + CLI + 21 tests |
 
 ---
 
