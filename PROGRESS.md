@@ -37,10 +37,12 @@
 - [ ] *Deferred to Phase 7：* 情緒時間衰減權重、bias 量化（已有 r=-0.273 / sign agreement 20% 證據）
 
 ### Phase 4 — Feature Engineering
-- [ ] `src/features/technical.py`：MA / RSI / MACD / BBands / HV
-- [ ] `src/features/sentiment.py`：情緒 MA、變化率、新聞量
-- [ ] 對齊技術指標與情緒特徵至同一交易日索引
-- [ ] 輸出至 `data/processed/`
+- [x] **4a** `src/features/technical.py`：12 個技術指標（MA5/20/60、RSI、MACD、BBands、hv_20）via pandas-ta
+- [x] **4b** `src/features/sentiment.py` 加 rolling features：sent_ma_3/7、sent_change_1、news_count_7、log_news_count_7（含 sparse-day reindex 修正）
+- [x] **4c** `src/features/panel.py` 對齊到 (date, ticker) 主表，**嚴格 t-1 反 look-ahead**（features shift + merge_asof allow_exact_matches=False）
+- [x] 輸出至 `data/processed/panel.parquet`
+- [x] Bumped requires-python to >=3.12（pandas-ta 限制）
+- [ ] *Deferred to Phase 7：* 歷史新聞回填 — 目前 sentiment 欄位在 2024 panel 上 0% 覆蓋是因為只有今天的新聞
 
 ### Phase 5 — Modeling (notebooks/03_model_training.ipynb)
 - [ ] Baseline：僅技術指標 XGBoost 分類器
@@ -81,6 +83,9 @@
 | 3a | `feat(sentiment): prototype Gemma sentiment scoring notebook` | 5-class JSON prompt |
 | 3b | `feat(sentiment): add multilingual baseline cross-check` | bias 對照組，r=-0.273 |
 | 3c | `feat(sentiment): extract sentiment module with dual backend` | Scorer ABC + CLI + 21 tests |
+| 4a | `feat(features): add technical indicators module` | 12 個 indicators via pandas-ta |
+| 4b | `feat(features): add rolling sentiment features` | 5 個 rolling sentiment 特徵 |
+| 4c | `feat(features): assemble (date, ticker) panel with t-1 leakage guards` | 47 tests passed，含 leakage 反偷看測試 |
 
 ---
 
