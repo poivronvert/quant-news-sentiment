@@ -22,9 +22,11 @@
 - [x] 將原始價格資料存入 `data/raw/prices/tw50_seed_2020_2024.parquet`（18,210 rows）
 
 ### Phase 2 — Data Collection Modules
-- [ ] `src/data_collection/price_loader.py`：把 notebook 中驗證過的抓取邏輯模組化
-- [ ] `src/data_collection/news_scraper.py`：RSS / 公開 API 財經新聞收集
-- [ ] 設計 news schema（title, summary, published_at, ticker, source）
+- [x] `src/data_collection/price_loader.py`：把 notebook 中驗證過的抓取邏輯模組化（library + CLI + pytest）
+- [x] `src/data_collection/news_scraper.py`：cnyes RSS 三條 feed，含 ticker linker
+- [x] 設計 news schema（article_id, source, title, summary, url, published_at, tickers）
+- [ ] *Deferred to Phase 7：* 使用歷史 TW50 成分股清單取代 seed list
+- [ ] *Deferred：* 擴充其他來源（聯合報、經濟日報等）
 
 ### Phase 3 — Sentiment Analysis (notebooks/02_sentiment_analysis.ipynb)
 - [ ] FinBERT zero-shot baseline
@@ -71,6 +73,8 @@
 | 0 | `chore: bootstrap project with uv and directory scaffold` | 初始化 |
 | 0 | `docs: add PROGRESS.md execution plan` | 進度計畫 |
 | 1 | `feat(data): add TW50 price exploration notebook` | 資料探索 (5aa6dfe) |
+| 2a | `feat(data): extract price_loader module from notebook` | 抓價模組 + CLI + tests |
+| 2b | `feat(data): add cnyes RSS news scraper` | 138 篇 / 84 帶 ticker |
 
 ---
 
